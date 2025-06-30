@@ -1,1 +1,2 @@
-export const AUTH_SERVICE_URL = 'http://localhost:3001';
+export const AUTH_SERVICE_URL = 'AUTH_SERVICE';
+export const NATS_SERVICE = 'NATS_SERVICE';
