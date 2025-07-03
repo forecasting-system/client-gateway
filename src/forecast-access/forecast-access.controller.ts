@@ -1,15 +1,14 @@
 import { Controller } from '@nestjs/common';
-import { ForecastAccessService } from './forecast-access.service';
-import { EventPattern, Payload } from '@nestjs/microservices';
+import { ForecastAccessGateway } from './forecast-access.gateway';
+import { EventPattern } from '@nestjs/microservices';
 
 @Controller('forecast')
 export class ForecastAccessController {
-  constructor(private readonly forecastAccessService: ForecastAccessService) {}
+  constructor(private readonly gateway: ForecastAccessGateway) {}
 
   @EventPattern('internal.forecast.updated')
-  // TODO: data DTO
-  handleForecastUpdate(@Payload() data: any): void {
-    console.log(`Forecast received ${data}`);
-    return this.forecastAccessService.updateForecast(data);
+  handleForecastUpdate() {
+    console.log(`Forecast received`);
+    return this.gateway.broadcastForecastUpdate();
   }
 }
