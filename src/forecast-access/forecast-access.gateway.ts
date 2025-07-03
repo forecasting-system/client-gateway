@@ -29,25 +29,6 @@ export class ForecastAccessGateway {
   async handleForecastSubscription(@ConnectedSocket() client: Socket) {
     this.subscribedClients.add(client);
 
-    // const forecast = this.service.getForecast();
-    const forecast = this.client.send('getForecast', {}).pipe(
-      catchError((err) => {
-        throw new RpcException({
-          message: err.message,
-          status: HttpStatus.BAD_REQUEST,
-        });
-      }),
-    );
-
-    client.emit('forecast', forecast);
-
-    client.on('disconnect', () => {
-      this.subscribedClients.delete(client);
-    });
-  }
-
-  async broadcastForecastUpdate() {
-    // const forecast = this.service.getForecast();
     const forecast = await firstValueFrom(
       this.client.send('getForecast', {}).pipe(
         catchError((err) => {
@@ -58,6 +39,26 @@ export class ForecastAccessGateway {
         }),
       ),
     );
+
+    client.emit('forecast', forecast);
+
+    client.on('disconnect', () => {
+      this.subscribedClients.delete(client);
+    });
+  }
+
+  async broadcastForecastUpdate() {
+    const forecast = await firstValueFrom(
+      this.client.send('getForecast', {}).pipe(
+        catchError((err) => {
+          throw new RpcException({
+            message: err.message,
+            status: HttpStatus.BAD_REQUEST,
+          });
+        }),
+      ),
+    );
+    console.log('forecast', forecast);
     for (const client of this.subscribedClients) {
       client.emit('forecast', forecast);
     }
