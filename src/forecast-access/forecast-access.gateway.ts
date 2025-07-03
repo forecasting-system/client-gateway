@@ -6,8 +6,11 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { ForecastAccessService } from './forecast-access.service';
-import { UseGuards } from '@nestjs/common';
+import { HttpStatus, Inject, UseGuards } from '@nestjs/common';
 import { AuthGuardSocket } from 'src/auth/guards/auth.socket.guard';
+import { ClientProxy, RpcException } from '@nestjs/microservices';
+import { NATS_SERVICE } from 'src/config';
+import { catchError, firstValueFrom } from 'rxjs';
 
 @WebSocketGateway({ cors: true })
 export class ForecastAccessGateway {
@@ -16,14 +19,26 @@ export class ForecastAccessGateway {
 
   private subscribedClients = new Set<Socket>();
 
-  constructor(private readonly service: ForecastAccessService) {}
+  constructor(
+    private readonly service: ForecastAccessService,
+    @Inject(NATS_SERVICE) private readonly client: ClientProxy,
+  ) {}
 
   @UseGuards(AuthGuardSocket)
   @SubscribeMessage('subscribe')
   async handleForecastSubscription(@ConnectedSocket() client: Socket) {
     this.subscribedClients.add(client);
 
-    const forecast = this.service.getForecast();
+    // const forecast = this.service.getForecast();
+    const forecast = this.client.send('getForecast', {}).pipe(
+      catchError((err) => {
+        throw new RpcException({
+          message: err.message,
+          status: HttpStatus.BAD_REQUEST,
+        });
+      }),
+    );
+
     client.emit('forecast', forecast);
 
     client.on('disconnect', () => {
@@ -32,7 +47,17 @@ export class ForecastAccessGateway {
   }
 
   async broadcastForecastUpdate() {
-    const forecast = this.service.getForecast();
+    // const forecast = this.service.getForecast();
+    const forecast = await firstValueFrom(
+      this.client.send('getForecast', {}).pipe(
+        catchError((err) => {
+          throw new RpcException({
+            message: err.message,
+            status: HttpStatus.BAD_REQUEST,
+          });
+        }),
+      ),
+    );
     for (const client of this.subscribedClients) {
       client.emit('forecast', forecast);
     }

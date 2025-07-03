@@ -1,4 +1,4 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Logger } from '@nestjs/common';
 import { ForecastAccessGateway } from './forecast-access.gateway';
 import { EventPattern } from '@nestjs/microservices';
 
@@ -6,9 +6,11 @@ import { EventPattern } from '@nestjs/microservices';
 export class ForecastAccessController {
   constructor(private readonly gateway: ForecastAccessGateway) {}
 
+  private readonly logger = new Logger('Client gateway service');
+
   @EventPattern('internal.forecast.updated')
   handleForecastUpdate() {
-    console.log(`Forecast received`);
+    this.logger.log(`Forecast received`);
     return this.gateway.broadcastForecastUpdate();
   }
 }
