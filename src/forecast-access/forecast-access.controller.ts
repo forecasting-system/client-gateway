@@ -10,7 +10,7 @@ export class ForecastAccessController {
 
   @EventPattern('internal.forecast.updated')
   handleForecastUpdate() {
-    this.logger.log(`Forecast update received`);
+    this.logger.log(`Triggers on internal.forecast.updated`);
     return this.gateway.broadcastForecastUpdate();
   }
 }
