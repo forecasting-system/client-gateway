@@ -37,6 +37,7 @@ export class AuthController {
   login(@Body() loginUserDto: LoginUserDto) {
     return this.client.send('auth.login.user', loginUserDto).pipe(
       catchError((err) => {
+        console.log('error', err);
         throw new RpcException({
           message: err.message,
           status: HttpStatus.BAD_REQUEST,

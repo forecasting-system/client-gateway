@@ -10,7 +10,12 @@ import { Transport } from '@nestjs/microservices';
 async function bootstrap() {
   const logger = new Logger('Client Gateway MS Main');
 
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    cors: {
+      origin: 'http://localhost:5173',
+      credentials: true,
+    },
+  });
 
   app.connectMicroservice({
     transport: Transport.NATS,
