@@ -53,6 +53,9 @@ export class ForecastAccessGateway {
 
     client.on('disconnect', () => {
       this.subscribedClients.delete(client);
+      this.logger.log(
+        `Client ${user.email}, with socket id ${client.id} disconnected`,
+      );
     });
   }
 

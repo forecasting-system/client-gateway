@@ -15,6 +15,7 @@ WORKDIR /usr/src/app
 
 COPY --from=deps /usr/src/app/node_modules ./node_modules
 
+# Copy source code
 COPY . .
 
 RUN npm run build
